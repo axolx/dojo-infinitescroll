@@ -14,11 +14,14 @@ define([
 
         timeout: 1000,
 
+        proximity: 100,
+
         postCreate: function() {
             pos = domGeom.position;
             this._connects = [];
             this.start();
             this.refresh();
+            window.scroll();
         },
 
         /**
@@ -39,16 +42,16 @@ define([
          * Handles the keyboard events for accessibility reasons
          */
         _onScroll: function(/*Event*/ evt) {
-            if(window.pageYOffset < 0) return;
+            if (window.pageYOffset < 0) return;
             var reached_bottom, reached_top;
             reached_bottom = Boolean(window.pageYOffset + this.viewport_height -
-                    this.nodeHeight > 0);
+                    this.nodeHeight + this.proximity > 0);
             if (reached_bottom) {
                 this.pause();
                 return this.onReachEnd();
             }
 
-            reached_top = Boolean(window.pageYOffset == 0);
+            reached_top = Boolean(window.pageYOffset <= this.proximity);
             if (reached_top) {
                 this.pause();
                 return this.onReachStart();
