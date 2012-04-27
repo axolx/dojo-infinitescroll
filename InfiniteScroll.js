@@ -16,7 +16,8 @@ define([
 
         timeout: 1000,
 
-        proximity: 100,
+        proximityTop: 200,
+        proximityBottom: 100,
 
         heightNode: null,
 
@@ -25,12 +26,8 @@ define([
             query("> *", this.domNode).wrapAll('<div class="heightwrapper"></div>');
             this.heightNode = query('.heightwrapper', this.domNode)[0];
             this._connects = [];
-            this.start();
             this.refresh();
-
-            // Load initial backwards scroll
-            this.pause();
-            this.onReachStart();
+            this.start();
         },
 
         /**
@@ -57,13 +54,13 @@ define([
                 scrollBottom = this.nodeHeight - (this.viewportHeight + scrollTop);
 
 
-            reached_bottom = Boolean(scrollBottom <= this.proximity);
+            reached_bottom = Boolean(scrollBottom <= this.proximityBottom);
             if (reached_bottom) {
                 this.pause();
                 return this.onReachEnd();
             }
 
-            reached_top = Boolean(scrollTop <= this.proximity);
+            reached_top = Boolean(scrollTop <= this.proximityTop);
             if (reached_top) {
                 this.pause();
                 return this.onReachStart();
@@ -86,6 +83,7 @@ define([
         start: function() {
             this._connects.push(on(this.domNode, 'scroll', lang.hitch(this,
                         '_onScroll')));
+            this._onScroll();
         },
 
         prepend: function(content) {
