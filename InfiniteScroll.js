@@ -7,8 +7,10 @@ define([
         'dojo/window',
         'dojo/dom-construct',
         'dojo/dom-style',
-        'dojo/_base/fx'
-        ], function(declare, widgetBase, lang, on, domGeom, win, domConstruct, domStyle, fx) {
+        'dojo/_base/fx',
+        'dojo/query',
+        'dojo/NodeList-manipulate'
+        ], function(declare, widgetBase, lang, on, domGeom, win, domConstruct, domStyle, fx, query, NodeListManipulate) {
 
     return dojo.declare('InifinteScroll', widgetBase, {
 
@@ -16,12 +18,19 @@ define([
 
         proximity: 100,
 
+        heightNode: null,
+
         postCreate: function() {
-            pos = domGeom.position;
+            // Wrap the domNode contents in a wrapper so we can measure height
+            query("> *", this.domNode).wrapAll('<div class="heightwrapper"></div>');
+            this.heightNode = query('.heightwrapper', this.domNode)[0];
             this._connects = [];
             this.start();
             this.refresh();
-            window.scroll();
+
+            // Load initial backwards scroll
+            this.pause();
+            this.onReachStart();
         },
 
         /**
@@ -42,16 +51,19 @@ define([
          * Handles the keyboard events for accessibility reasons
          */
         _onScroll: function(/*Event*/ evt) {
-            if (window.pageYOffset < 0) return;
-            var reached_bottom, reached_top;
-            reached_bottom = Boolean(window.pageYOffset + this.viewport_height -
-                    this.nodeHeight + this.proximity > 0);
+            var reached_bottom,
+                reached_top,
+                scrollTop = this.domNode.scrollTop,
+                scrollBottom = this.nodeHeight - (this.viewportHeight + scrollTop);
+
+
+            reached_bottom = Boolean(scrollBottom <= this.proximity);
             if (reached_bottom) {
                 this.pause();
                 return this.onReachEnd();
             }
 
-            reached_top = Boolean(window.pageYOffset <= this.proximity);
+            reached_top = Boolean(scrollTop <= this.proximity);
             if (reached_top) {
                 this.pause();
                 return this.onReachStart();
@@ -59,8 +71,8 @@ define([
         },
 
         refresh: function() {
-            this.nodeHeight = domGeom.position(this.domNode, false).h;
-            this.viewport_height = win.getBox().h;
+            this.nodeHeight = domGeom.position(this.heightNode, false).h;
+            this.viewportHeight = domGeom.position(this.domNode, false).h;
         },
 
         pause: function() {
@@ -72,7 +84,7 @@ define([
         },
 
         start: function() {
-            this._connects.push(on(window, 'scroll', lang.hitch(this,
+            this._connects.push(on(this.domNode, 'scroll', lang.hitch(this,
                         '_onScroll')));
         },
 
@@ -90,10 +102,10 @@ define([
           var wrapperNode = this._wrapContent(topWrapperNode);
 
           // Initial scroll offset
-          var yOffset = window.pageYOffset;
+          var yOffset = this.domNode.scrollTop;
 
           // Place the wrapper node on the page
-          domConstruct.place(wrapperNode, this.domNode, 'first');
+          domConstruct.place(wrapperNode, this.heightNode, 'first');
 
           // Get the height of the contentNode
           var height = domGeom.getMarginBox(contentNode).h;
@@ -105,7 +117,7 @@ define([
             },
             onAnimate: lang.hitch(this, function(props) {
               // scroll the window along with the element height
-              window.scroll(0, yOffset + parseFloat(props.height));
+              this.domNode.scrollTop = yOffset + parseFloat(props.height);
             }),
             onEnd: lang.hitch(this, function(node) {
               domStyle.set(topWrapperNode, {position: 'relative'});
@@ -119,7 +131,7 @@ define([
         append: function(content) {
           var contentNode = domConstruct.toDom(content);
           var wrapperNode = this._wrapContent(contentNode);
-          domConstruct.place(wrapperNode, this.domNode, 'last');
+          domConstruct.place(wrapperNode, this.heightNode, 'last');
           var height = domGeom.getMarginBox(contentNode).h;
           dojo.animateProperty({
             node: wrapperNode,

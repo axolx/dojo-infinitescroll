@@ -5,6 +5,22 @@
 	<title>Inifinite Scroll Widget Automated (non-robot) Tests</title>
 
     <style type="text/css">
+        html, body { margin: 0; padding: 0; }
+        h1 {
+          height: 50px;
+          line-height: 50px;
+          margin: 0;
+          border-bottom: 1px solid #444444;
+          text-align: center;
+        }
+        #panels {
+          position: absolute;
+          top: 50px;
+          bottom: 20px;
+          width: 100%;
+          overflow: auto;
+          border-bottom: 1px solid #444444;
+        }
         .panel {
             padding: 1em;
             margin: 1em 5em;
@@ -38,6 +54,7 @@
             "risus vel metus interdum vulputate.</p></div>";
         require(['dojo/_base/kernel', 'my/InfiniteScroll'], function (dojo, InfiniteScroll) {
             var is = new InifinteScroll({
+                id: 'panels',
                 domNode: document.getElementById('panels'),
                 onReachStart: function() {
                     console.log('Reached top!');
