@@ -6,8 +6,9 @@ define([
         'dojo/dom-geometry',
         'dojo/window',
         'dojo/dom-construct',
-        'dojo/dom-style'
-        ], function(declare, widgetBase, lang, on, domGeom, win, domConstruct, domStyle) {
+        'dojo/dom-style',
+        'dojo/_base/fx'
+        ], function(declare, widgetBase, lang, on, domGeom, win, domConstruct, domStyle, fx) {
 
     return dojo.declare('InifinteScroll', widgetBase, {
 
@@ -75,7 +76,15 @@ define([
         prepend: function(content) {
           // Keep handles to the content node and wrapper node
           var contentNode = domConstruct.toDom(content);
-          var wrapperNode = this._wrapContent(contentNode);
+
+          // wrap with bottom absolutely positioned element so the animation
+          // shows the bottom of the inserted node first
+          var topWrapperNode = domConstruct.create('div', {
+            style: 'position: absolute; bottom: 0;'
+          });
+          domConstruct.place(contentNode, topWrapperNode);
+
+          var wrapperNode = this._wrapContent(topWrapperNode);
 
           // Initial scroll offset
           var yOffset = window.pageYOffset;
@@ -86,26 +95,41 @@ define([
           // Get the height of the contentNode
           var box = domGeom.getMarginBox(contentNode);
 
-          // Set the wrapper so contentNode is visible
-          domStyle.set(wrapperNode, {height: 'auto', overflow: 'auto'});
+          dojo.animateProperty({
+            node: wrapperNode,
+            properties: {height: box.h},
+            onAnimate: lang.hitch(this, function(props) {
+              // scroll the window along with the element height
+              window.scroll(0, yOffset + parseFloat(props.height));
+            }),
+            onEnd: lang.hitch(this, function(node) {
+              domStyle.set(topWrapperNode, {position: 'relative'});
+              domStyle.set(node, {height: 'auto', overflow: 'auto'});
+              this.refresh();
+            })
+          }).play();
 
-          // Set window scroll to the height of the contentNode
-          window.scroll(0, box.h + yOffset);
-          this.refresh();
         },
 
         append: function(content) {
           var contentNode = domConstruct.toDom(content);
           var wrapperNode = this._wrapContent(contentNode);
           domConstruct.place(wrapperNode, this.domNode, 'last');
-          domStyle.set(wrapperNode, {height: 'auto', overflow: 'auto'});
-          this.refresh();
+          var box = domGeom.getMarginBox(contentNode);
+          dojo.animateProperty({
+            node: wrapperNode,
+            properties: {height: box.h},
+            onEnd: lang.hitch(this, function(node) {
+              domStyle.set(node, {height: 'auto', overflow: 'auto'});
+              this.refresh();
+            })
+          }).play();
         },
 
         _wrapContent: function(contentNode) {
           var wrapperNode = domConstruct.create('div', {
             'class': 'infinitescroll-heightwrap',
-            style: 'overflow: hidden; height: 0px'
+            style: 'position: relative; overflow: hidden; height: 0px'
           });
           domConstruct.place(contentNode, wrapperNode);
           return wrapperNode;
