@@ -93,11 +93,13 @@ define([
           domConstruct.place(wrapperNode, this.domNode, 'first');
 
           // Get the height of the contentNode
-          var box = domGeom.getMarginBox(contentNode);
+          var height = domGeom.getMarginBox(contentNode).h;
 
           dojo.animateProperty({
             node: wrapperNode,
-            properties: {height: box.h},
+            properties: {
+              height: height
+            },
             onAnimate: lang.hitch(this, function(props) {
               // scroll the window along with the element height
               window.scroll(0, yOffset + parseFloat(props.height));
@@ -115,12 +117,17 @@ define([
           var contentNode = domConstruct.toDom(content);
           var wrapperNode = this._wrapContent(contentNode);
           domConstruct.place(wrapperNode, this.domNode, 'last');
-          var box = domGeom.getMarginBox(contentNode);
+          var height = domGeom.getMarginBox(contentNode).h;
           dojo.animateProperty({
             node: wrapperNode,
-            properties: {height: box.h},
+            properties: {
+              height: height
+            },
             onEnd: lang.hitch(this, function(node) {
-              domStyle.set(node, {height: 'auto', overflow: 'auto'});
+              domStyle.set(node, {
+                height: 'auto',
+                overflow: 'auto'
+              });
               this.refresh();
             })
           }).play();
