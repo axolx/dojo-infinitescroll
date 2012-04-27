@@ -4,8 +4,10 @@ define([
         'dojo/_base/lang', // lang.mixin lang.hitch
         'dojo/on',
         'dojo/dom-geometry',
-        'dojo/window'
-        ], function(declare, widgetBase, lang, on, domGeom, win) {
+        'dojo/window',
+        'dojo/dom-construct',
+        'dojo/dom-style'
+        ], function(declare, widgetBase, lang, on, domGeom, win, domConstruct, domStyle) {
 
     return dojo.declare('InifinteScroll', widgetBase, {
 
@@ -68,6 +70,45 @@ define([
         start: function() {
             this._connects.push(on(window, 'scroll', lang.hitch(this,
                         '_onScroll')));
+        },
+
+        prepend: function(content) {
+          // Keep handles to the content node and wrapper node
+          var contentNode = domConstruct.toDom(content);
+          var wrapperNode = this._wrapContent(contentNode);
+
+          // Initial scroll offset
+          var yOffset = window.pageYOffset;
+
+          // Place the wrapper node on the page
+          domConstruct.place(wrapperNode, this.domNode, 'first');
+
+          // Get the height of the contentNode
+          var box = domGeom.getMarginBox(contentNode);
+
+          // Set the wrapper so contentNode is visible
+          domStyle.set(wrapperNode, {height: 'auto', overflow: 'auto'});
+
+          // Set window scroll to the height of the contentNode
+          window.scroll(0, box.h + yOffset);
+          this.refresh();
+        },
+
+        append: function(content) {
+          var contentNode = domConstruct.toDom(content);
+          var wrapperNode = this._wrapContent(contentNode);
+          domConstruct.place(wrapperNode, this.domNode, 'last');
+          domStyle.set(wrapperNode, {height: 'auto', overflow: 'auto'});
+          this.refresh();
+        },
+
+        _wrapContent: function(contentNode) {
+          var wrapperNode = domConstruct.create('div', {
+            'class': 'infinitescroll-heightwrap',
+            style: 'overflow: hidden; height: 0px'
+          });
+          domConstruct.place(contentNode, wrapperNode);
+          return wrapperNode;
         }
 
     });
