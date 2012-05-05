@@ -92,9 +92,10 @@ define([
             this._onScroll();
         },
 
-        prepend: function(content) {
+        prepend: function(/* str or domNode */ content) {
           // Keep handles to the content node and wrapper node
-          var contentNode = domConstruct.toDom(content);
+          var contentNode = typeof content == 'string' ?
+              domConstruct.toDom(content) : content;
 
           // wrap with bottom absolutely positioned element so the animation
           // shows the bottom of the inserted node first
@@ -132,8 +133,9 @@ define([
 
         },
 
-        append: function(content) {
-          var contentNode = domConstruct.toDom(content);
+        append: function(/* str or domNode */ content) {
+          var contentNode = typeof content == 'string' ?
+              domConstruct.toDom(content) : content;
           var wrapperNode = this._wrapContent(contentNode);
           domConstruct.place(wrapperNode, this.heightNode, 'last');
           var height = domGeom.getMarginBox(contentNode).h;
