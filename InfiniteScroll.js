@@ -23,7 +23,13 @@ define([
 
         postCreate: function() {
             // Wrap the domNode contents in a wrapper so we can measure height
-            query("> *", this.domNode).wrapAll('<div class="heightwrapper"></div>');
+            var initial_panels = query("> *", this.domNode).length;
+            if (initial_panels > 0) {
+                query("> *", this.domNode).wrapAll('<div class="heightwrapper"></div>');
+            }
+            else {
+                domConstruct.place('<div class="heightwrapper"></div>', this.domNode);
+            }
             this.heightNode = query('.heightwrapper', this.domNode)[0];
             this._connects = [];
             this.refresh();
