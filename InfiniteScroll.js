@@ -23,9 +23,9 @@ define([
 
         postCreate: function() {
             // Wrap the domNode contents in a wrapper so we can measure height
-            var initial_panels = query("> *", this.domNode).length;
+            var initial_panels = query('> *', this.domNode).length;
             if (initial_panels > 0) {
-                query("> *", this.domNode).wrapAll('<div class="heightwrapper"></div>');
+                query('> *', this.domNode).wrapAll('<div class="heightwrapper"></div>');
             }
             else {
                 domConstruct.place('<div class="heightwrapper"></div>', this.domNode);
@@ -91,7 +91,7 @@ define([
 
         pause: function() {
             var h;
-            while(h = this._connects.pop()){
+            while (h = this._connects.pop()) {
                 h.remove();
             }
             setTimeout(lang.hitch(this, 'start'), this.timeout);
