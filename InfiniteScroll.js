@@ -4,13 +4,15 @@ define([
         'dojo/_base/lang', // lang.mixin lang.hitch
         'dojo/on',
         'dojo/dom-geometry',
-        'dojo/window',
+        'dojo/_base/window',
         'dojo/dom-construct',
         'dojo/dom-style',
+        'dojo/dom-class',
         'dojo/_base/fx',
         'dojo/query',
         'dojo/NodeList-manipulate'
-        ], function(declare, widgetBase, lang, on, domGeom, win, domConstruct, domStyle, fx, query, NodeListManipulate) {
+        ], function(declare, widgetBase, lang, on, domGeom, win, domConstruct,
+            domStyle, domClass, fx, query, NodeListManipulate) {
 
     return dojo.declare('InifinteScroll', widgetBase, {
 
@@ -91,6 +93,7 @@ define([
 
         pause: function() {
             var h;
+            domClass.add(win.body(), 'loading');
             while (h = this._connects.pop()) {
                 h.remove();
             }
@@ -101,6 +104,7 @@ define([
             this._connects.push(on(this.domNode, 'scroll', lang.hitch(this,
                         '_onScroll')));
             this._onScroll();
+            domClass.remove(win.body(), 'loading');
         },
 
         prepend: function(/* str or domNode */ content) {
