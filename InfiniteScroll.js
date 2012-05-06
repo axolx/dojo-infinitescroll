@@ -51,14 +51,25 @@ define([
         },
 
         /**
+         * Callback fired on scroll
+         */
+        onScroll: function() {
+            console.log('Scroll');
+        },
+
+        /**
          * Handles the keyboard events for accessibility reasons
          */
         _onScroll: function(/*Event*/ evt) {
             var reached_bottom,
                 reached_top,
                 scrollTop = this.domNode.scrollTop,
-                scrollBottom = this.nodeHeight - (this.viewportHeight + scrollTop);
+                scrollBottom = this.nodeHeight - (this.viewportHeight +
+                        scrollTop);
 
+            // Call the sbroll callback regardless of whether we reached
+            // top/bottom
+            this.onScroll();
 
             reached_bottom = Boolean(scrollBottom <= this.proximityBottom);
             if (reached_bottom) {
