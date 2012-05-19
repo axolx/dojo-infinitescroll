@@ -10,9 +10,10 @@ define([
         'dojo/dom-class',
         'dojo/_base/fx',
         'dojo/query',
-        'dojo/NodeList-manipulate'
+        'dojo/NodeList-manipulate',
+        'dojo/_base/Deferred'
         ], function(declare, widgetBase, lang, on, domGeom, win, domConstruct,
-            domStyle, domClass, fx, query, NodeListManipulate) {
+            domStyle, domClass, fx, query, NodeListManipulate, Deferred) {
 
     return dojo.declare('InifinteScroll', widgetBase, {
 
@@ -34,8 +35,8 @@ define([
             }
             this.heightNode = query('.heightwrapper', this.domNode)[0];
             this._connects = [];
-            this.refresh();
             this.start();
+            this._onScroll(); // give it a first nudge
         },
 
         /**
@@ -97,17 +98,20 @@ define([
             while (h = this._connects.pop()) {
                 h.remove();
             }
-            setTimeout(lang.hitch(this, 'start'), this.timeout);
+            // why does it auto-restart? shouldn't that be controlled by the
+            // app?
+            // setTimeout(lang.hitch(this, 'start'), this.timeout);
         },
 
         start: function() {
+            this.refresh();
             this._connects.push(on(this.domNode, 'scroll', lang.hitch(this,
                         '_onScroll')));
-            this._onScroll();
             domClass.remove(win.body(), 'loading');
         },
 
         prepend: function(/* str or domNode */ content) {
+          var promise = new Deferred();
           // Keep handles to the content node and wrapper node
           var contentNode = typeof content == 'string' ?
               domConstruct.toDom(content) : content;
@@ -142,13 +146,16 @@ define([
             onEnd: lang.hitch(this, function(node) {
               domStyle.set(topWrapperNode, {position: 'relative'});
               domStyle.set(node, {height: 'auto', overflow: 'auto'});
-              this.refresh();
+              promise.resolve({success: true});
+              this.start();
             })
           }).play();
+          return promise;
 
         },
 
         append: function(/* str or domNode */ content) {
+          var promise = new Deferred();
           var contentNode = typeof content == 'string' ?
               domConstruct.toDom(content) : content;
           var wrapperNode = this._wrapContent(contentNode);
@@ -164,9 +171,11 @@ define([
                 height: 'auto',
                 overflow: 'auto'
               });
-              this.refresh();
+              promise.resolve({success: true});
+              this.start();
             })
           }).play();
+          return promise;
         },
 
         _wrapContent: function(contentNode) {
